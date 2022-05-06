@@ -6,7 +6,7 @@ With this package the coordination between users can be calculated based on simi
 Therefore, different data acquistion methods and similarity calculation methods are offered.
 This package is also incorporated into the **textClust** dashboard with an additional component for the dashboard.
 Thus, this repository also offers an extension to the **textClust** dashboard.
-Since this dashboard is used in the second phase of the two-phase framework of <a name="myfootnote1">[1]</a>, it can also be seen as an extension of this study.
+Since this dashboard is used in the second phase of the two-phase framework of [1], it can also be seen as an extension of this study.
 
 In the folder *notebooks* different jupyter notebooks are stored.
 They were either used to create additional material for the thesis or to experiment during the development of the pipeline that created coordination-aware community graphs.
@@ -25,4 +25,4 @@ The Myanmar case used the cluster 14 at the timestamp 2022-02-21 13:01:16 from t
 
 ### Sources
 
-[[1]](#myfootnote1) Assenmacher, D., Clever, L., Pohl, J. S., Trautmann, H., & Grimme, C. (2020). A two-phase framework for detecting manipulation campaigns in social media. In Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics): Vol. 12194 LNCS. Springer International Publishing. https://doi.org/10.1007/978-3-030-49570-1_14
+[1] Assenmacher, D., Clever, L., Pohl, J. S., Trautmann, H., & Grimme, C. (2020). A two-phase framework for detecting manipulation campaigns in social media. In Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics): Vol. 12194 LNCS. Springer International Publishing. https://doi.org/10.1007/978-3-030-49570-1_14
