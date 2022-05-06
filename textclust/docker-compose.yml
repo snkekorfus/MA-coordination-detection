@@ -1,0 +1,150 @@
+version: "3.9"
+
+services:
+  frontend:
+    build: ./dashboard
+    image: textclust_dashboard
+    ports:
+      - "8050:8050"
+    environment: 
+      FLASK_ENV: "development"
+    volumes:
+      - ./dashboard/src:/textclust-frontend
+    depends_on: 
+      - backend
+
+  frontend_private:
+    build: ./dashboard
+    image: textclust_dashboard
+    ports:
+      - "8051:8050"
+    environment:
+      private_dashboard: "True"
+      FLASK_ENV: "development"
+    volumes:
+      - ./dashboard/src:/textclust-frontend
+    depends_on: 
+      - backend
+
+  backend:
+    build: ./textclust-backend
+    ports:
+      - "5000:5000"
+    depends_on: 
+      - db
+    volumes:
+      - ./textclust-backend/flaskserver:/textclust-backend/flaskserver
+    environment: 
+      FLASK_DEBUG: "1"
+      FLASK_ENV: "development"
+      FLASK_RUN: "THREADED=True"
+      RADIUS: "${RADIUS}"
+      MODEL: "${MODEL}"
+      FADING_FACTOR: "${FADING_FACTOR}"
+      VERBOSE: "${VERBOSE}"
+      TERMFADING: "${TERMFADING}"
+      REALTIME: "${REALTIME}"
+      AUTO_RADIUS: "${AUTO_RADIUS}"
+      AUTO_MERGE: "${AUTO_MERGE}"
+      TIME_GAP: "${TIME_GAP}"
+      MICRO_CLUSTER_DISTANCE_METRIC: "${MICRO_CLUSTER_DISTANCE_METRIC}"
+      MACRO_CLUSTER_DISTANCE_METRIC: "${MACRO_CLUSTER_DISTANCE_METRIC}"
+      MACRO_NUMBER: "${MACRO_NUMBER}"
+      MINIMUM_MICRO_CLUSTER_WEIGHT: "${MINIMUM_MICRO_CLUSTER_WEIGHT}"
+      IDF: "${IDF}"
+      LANGUAGE: "${LANGUAGE}"
+      N_GRAMS: "${N_GRAMS}"
+      STEMMING: "${STEMMING}"
+      HASHTAG_REMOVEL: "${HASHTAG_REMOVEL}"
+      USERNAMES_REMOVEL: "${USERNAMES_REMOVEL}"
+      STOPWORD_REMOVEL: "${STOPWORD_REMOVEL}"
+      PUNCTUATION_REMOVAL: "${PUNCTUATION_REMOVAL}"
+      URLS_REMOVE: "${URLS_REMOVE}"
+      LANGUAGES: "${LANGUAGES}"
+      KEYWORDS: "${KEYWORDS}"
+      TIME_UNIT: "${TIME_UNIT}"
+      WINDOW_SIZE: "${WINDOW_SIZE}"
+      EXCLUDE_TOKENS: "${EXCLUDE_TOKENS}"
+      ANALYSIS: "${ANALYSIS}"
+    command: python3 -m app
+  
+  db:
+    image: mongo:5.0 # Myanmar needs 5.0; the war data 4.4.6
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data:/data/db
+    command: mongod --quiet --logpath /dev/null
+    
+  flower:
+    image: mher/flower:0.9.7
+    container_name: frontend_flower
+    environment:
+        - CELERY_BROKER_URL=redis://redis:6379/2
+    ports:
+      - 5555:5555
+    depends_on:
+      - celery
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+  
+  celery:
+    build: ./textclust-backend
+    restart: unless-stopped
+    command: celery -A app.celery worker
+    depends_on:     
+      - db
+      - backend
+    volumes:
+      - ./textclust-backend/flaskserver:/textclust-backend/flaskserver
+      - ./tweet_data:/data
+    environment:
+      FLASK_DEBUG: "1"
+      FLASK_ENV: "development"
+      FLASK_RUN: "THREADED=True"
+      RADIUS: "${RADIUS}"
+      MODEL: "${MODEL}"
+      FADING_FACTOR: "${FADING_FACTOR}"
+      VERBOSE: "${VERBOSE}"
+      TERMFADING: "${TERMFADING}"
+      REALTIME: "${REALTIME}"
+      AUTO_RADIUS: "${AUTO_RADIUS}"
+      AUTO_MERGE: "${AUTO_MERGE}"
+      TIME_GAP: "${TIME_GAP}"
+      MICRO_CLUSTER_DISTANCE_METRIC: "${MICRO_CLUSTER_DISTANCE_METRIC}"
+      MACRO_CLUSTER_DISTANCE_METRIC: "${MACRO_CLUSTER_DISTANCE_METRIC}"
+      MACRO_NUMBER: "${MACRO_NUMBER}"
+      MINIMUM_MICRO_CLUSTER_WEIGHT: "${MINIMUM_MICRO_CLUSTER_WEIGHT}"
+      IDF: "${IDF}"
+      LANGUAGE: "${LANGUAGE}"
+      N_GRAMS: "${N_GRAMS}"
+      STEMMING: "${STEMMING}"
+      HASHTAG_REMOVEL: "${HASHTAG_REMOVEL}"
+      USERNAMES_REMOVEL: "${USERNAMES_REMOVEL}"
+      STOPWORD_REMOVEL: "${STOPWORD_REMOVEL}"
+      PUNCTUATION_REMOVAL: "${PUNCTUATION_REMOVAL}"
+      URLS_REMOVE: "${URLS_REMOVE}"
+      LANGUAGES: "${LANGUAGES}"
+      KEYWORDS: "${KEYWORDS}"
+      TIME_UNIT: "${TIME_UNIT}"
+      WINDOW_SIZE: "${WINDOW_SIZE}"
+      EXCLUDE_TOKENS: "${EXCLUDE_TOKENS}"
+      ANALYSIS: "${ANALYSIS}"
+
+  celery_frontend:
+    build: ./dashboard
+    command: celery -A app.celery_app worker --loglevel INFO
+    depends_on:     
+      - frontend
+      - frontend_private
+    volumes:
+      - ./dashboard/src:/textclust-frontend
+    environment:
+      BEARER_TOKEN: "${BEARER_TOKEN}"
+      API_KEY: "${API_KEY}"
+      API_SECRET: "${API_SECRET}"
+      ACCESS_TOKEN: "${ACCESS_TOKEN}"
+      ACCESS_SECRET: "${ACCESS_SECRET}"
